@@ -1,0 +1,404 @@
+-- MySQL Workbench Forward Engineering
+
+SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
+SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
+SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
+
+-- -----------------------------------------------------
+-- Schema mydb
+-- -----------------------------------------------------
+-- -----------------------------------------------------
+-- Schema u572677979_EVENTO_HACK
+-- -----------------------------------------------------
+
+-- -----------------------------------------------------
+-- Schema u572677979_EVENTO_HACK
+-- -----------------------------------------------------
+CREATE SCHEMA IF NOT EXISTS `u572677979_EVENTO_HACK` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ;
+USE `u572677979_EVENTO_HACK` ;
+
+-- -----------------------------------------------------
+-- Table `u572677979_EVENTO_HACK`.`perfis`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `u572677979_EVENTO_HACK`.`perfis` (
+  `id` BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `nome` VARCHAR(255) NOT NULL,
+  `created_at` TIMESTAMP NULL DEFAULT NULL,
+  `updated_at` TIMESTAMP NULL DEFAULT NULL,
+  PRIMARY KEY (`id`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_unicode_ci;
+
+
+-- -----------------------------------------------------
+-- Table `u572677979_EVENTO_HACK`.`users`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `u572677979_EVENTO_HACK`.`users` (
+  `id` BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(255) NOT NULL,
+  `email` VARCHAR(255) NOT NULL,
+  `email_verified_at` TIMESTAMP NULL DEFAULT NULL,
+  `password` VARCHAR(255) NOT NULL,
+  `remember_token` VARCHAR(100) NULL DEFAULT NULL,
+  `created_at` TIMESTAMP NULL DEFAULT NULL,
+  `updated_at` TIMESTAMP NULL DEFAULT NULL,
+  `id_perfil` BIGINT(20) UNSIGNED NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `users_email_unique` (`email` ASC) VISIBLE,
+  INDEX `users_id_perfil_foreign` (`id_perfil` ASC) VISIBLE,
+  CONSTRAINT `users_id_perfil_foreign`
+    FOREIGN KEY (`id_perfil`)
+    REFERENCES `u572677979_EVENTO_HACK`.`perfis` (`id`)
+    ON DELETE SET NULL)
+ENGINE = InnoDB
+AUTO_INCREMENT = 4
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_unicode_ci;
+
+
+-- -----------------------------------------------------
+-- Table `u572677979_EVENTO_HACK`.`servicos`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `u572677979_EVENTO_HACK`.`servicos` (
+  `IdServicos` INT(11) NOT NULL AUTO_INCREMENT,
+  `NomeServico` VARCHAR(100) NOT NULL,
+  `Descricao` TEXT NOT NULL,
+  `DataCriacao` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP(),
+  `IdCategoria` INT(11) NULL DEFAULT NULL,
+  `Imagem` VARCHAR(500) NULL DEFAULT NULL,
+  PRIMARY KEY (`IdServicos`))
+ENGINE = InnoDB
+AUTO_INCREMENT = 21
+DEFAULT CHARACTER SET = utf8mb4;
+
+
+-- -----------------------------------------------------
+-- Table `u572677979_EVENTO_HACK`.`status`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `u572677979_EVENTO_HACK`.`status` (
+  `IdStatus` INT(11) NOT NULL AUTO_INCREMENT,
+  `Descricao` VARCHAR(100) NOT NULL,
+  PRIMARY KEY (`IdStatus`))
+ENGINE = InnoDB
+AUTO_INCREMENT = 16
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_unicode_ci;
+
+
+-- -----------------------------------------------------
+-- Table `u572677979_EVENTO_HACK`.`agendamentos`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `u572677979_EVENTO_HACK`.`agendamentos` (
+  `IdAgendamento` INT(11) NOT NULL AUTO_INCREMENT,
+  `IdCliente` BIGINT(20) UNSIGNED NOT NULL,
+  `IdServico` INT(11) NOT NULL,
+  `IdProfissional` BIGINT(20) UNSIGNED NOT NULL,
+  `DataHora` VARCHAR(45) NULL DEFAULT NULL,
+  `created_at` VARCHAR(45) NULL DEFAULT NULL,
+  `updated_at` VARCHAR(45) NULL DEFAULT NULL,
+  `IdStatus` INT(11) NULL DEFAULT 2,
+  PRIMARY KEY (`IdAgendamento`),
+  INDEX `servico_idx` (`IdServico` ASC) VISIBLE,
+  INDEX `status_idx` (`IdStatus` ASC) VISIBLE,
+  INDEX `fk_profissional_idx` (`IdProfissional` ASC) VISIBLE,
+  INDEX `fk_cliente_idx` (`IdCliente` ASC) VISIBLE,
+  CONSTRAINT `FK_UserAgendamentos`
+    FOREIGN KEY (`IdProfissional`)
+    REFERENCES `u572677979_EVENTO_HACK`.`users` (`id`),
+  CONSTRAINT `fk_cliente`
+    FOREIGN KEY (`IdCliente`)
+    REFERENCES `u572677979_EVENTO_HACK`.`users` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_profissional`
+    FOREIGN KEY (`IdProfissional`)
+    REFERENCES `u572677979_EVENTO_HACK`.`users` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `servico`
+    FOREIGN KEY (`IdServico`)
+    REFERENCES `u572677979_EVENTO_HACK`.`servicos` (`IdServicos`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `status`
+    FOREIGN KEY (`IdStatus`)
+    REFERENCES `u572677979_EVENTO_HACK`.`status` (`IdStatus`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB
+AUTO_INCREMENT = 34
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_unicode_ci;
+
+
+-- -----------------------------------------------------
+-- Table `u572677979_EVENTO_HACK`.`categorias`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `u572677979_EVENTO_HACK`.`categorias` (
+  `IdCategoria` INT(11) NOT NULL AUTO_INCREMENT,
+  `categoria` VARCHAR(45) NULL DEFAULT NULL,
+  PRIMARY KEY (`IdCategoria`))
+ENGINE = InnoDB
+AUTO_INCREMENT = 5
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_unicode_ci;
+
+
+-- -----------------------------------------------------
+-- Table `u572677979_EVENTO_HACK`.`especialidades`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `u572677979_EVENTO_HACK`.`especialidades` (
+  `IdEspecialidades` INT(11) NOT NULL AUTO_INCREMENT,
+  `Descricao` VARCHAR(100) NULL DEFAULT NULL,
+  PRIMARY KEY (`IdEspecialidades`))
+ENGINE = InnoDB
+AUTO_INCREMENT = 288
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_unicode_ci;
+
+
+-- -----------------------------------------------------
+-- Table `u572677979_EVENTO_HACK`.`horariosdisponiveis`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `u572677979_EVENTO_HACK`.`horariosdisponiveis` (
+  `IdHorario` INT(11) NOT NULL AUTO_INCREMENT,
+  `iduser` BIGINT(20) UNSIGNED NOT NULL,
+  `DataHoraInicio` DATETIME NOT NULL,
+  `DataHoraFim` DATETIME NOT NULL,
+  `IdStatus` INT(11) NOT NULL,
+  PRIMARY KEY (`IdHorario`),
+  INDEX `iduser_idx` (`iduser` ASC) VISIBLE,
+  INDEX `fk_status_idx` (`IdStatus` ASC) VISIBLE,
+  CONSTRAINT `fk_status`
+    FOREIGN KEY (`IdStatus`)
+    REFERENCES `u572677979_EVENTO_HACK`.`status` (`IdStatus`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `iduser_horario`
+    FOREIGN KEY (`iduser`)
+    REFERENCES `u572677979_EVENTO_HACK`.`users` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4;
+
+
+-- -----------------------------------------------------
+-- Table `u572677979_EVENTO_HACK`.`migrations`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `u572677979_EVENTO_HACK`.`migrations` (
+  `id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `migration` VARCHAR(255) NOT NULL,
+  `batch` INT(11) NOT NULL,
+  PRIMARY KEY (`id`))
+ENGINE = InnoDB
+AUTO_INCREMENT = 6
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_unicode_ci;
+
+
+-- -----------------------------------------------------
+-- Table `u572677979_EVENTO_HACK`.`notificacoes`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `u572677979_EVENTO_HACK`.`notificacoes` (
+  `IdNotificacao` INT(11) NOT NULL AUTO_INCREMENT,
+  `iduser` BIGINT(20) UNSIGNED NOT NULL,
+  `Mensagem` VARCHAR(255) NULL DEFAULT NULL,
+  `DataNotificacao` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP(),
+  PRIMARY KEY (`IdNotificacao`),
+  INDEX `notificacao_id_idx` (`iduser` ASC) VISIBLE,
+  CONSTRAINT `notificacao_id`
+    FOREIGN KEY (`iduser`)
+    REFERENCES `u572677979_EVENTO_HACK`.`users` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_unicode_ci;
+
+
+-- -----------------------------------------------------
+-- Table `u572677979_EVENTO_HACK`.`personal_access_tokens`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `u572677979_EVENTO_HACK`.`personal_access_tokens` (
+  `id` BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `tokenable_type` VARCHAR(255) NOT NULL,
+  `tokenable_id` BIGINT(20) UNSIGNED NOT NULL,
+  `name` VARCHAR(255) NOT NULL,
+  `token` VARCHAR(400) NOT NULL,
+  `abilities` TEXT NULL DEFAULT NULL,
+  `last_used_at` TIMESTAMP NULL DEFAULT NULL,
+  `created_at` TIMESTAMP NULL DEFAULT NULL,
+  `updated_at` TIMESTAMP NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `personal_access_tokens_token_unique` (`token` ASC) VISIBLE,
+  INDEX `personal_access_tokens_tokenable_type_tokenable_id_index` (`tokenable_type` ASC, `tokenable_id` ASC) VISIBLE)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_unicode_ci;
+
+
+-- -----------------------------------------------------
+-- Table `u572677979_EVENTO_HACK`.`servicosprofissionais`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `u572677979_EVENTO_HACK`.`servicosprofissionais` (
+  `IdServicosProfissionais` INT(11) NOT NULL AUTO_INCREMENT,
+  `IdUser` BIGINT(20) UNSIGNED NOT NULL,
+  `IdServicos` INT(11) NOT NULL,
+  `Telefone` BIGINT(11) NOT NULL,
+  `Cep` BIGINT(8) UNSIGNED ZEROFILL NOT NULL,
+  `Endereco` VARCHAR(300) NOT NULL,
+  `Numero` INT(5) NOT NULL,
+  `Complemento` VARCHAR(45) NULL DEFAULT NULL,
+  `Cidade` VARCHAR(50) NOT NULL,
+  `Estado` CHAR(2) NOT NULL,
+  `Preco` DECIMAL(5,2) NOT NULL,
+  `IdStatus` INT(11) NOT NULL,
+  `DataCriacao` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP(),
+  PRIMARY KEY (`IdServicosProfissionais`),
+  UNIQUE INDEX `Telefone_UNIQUE` (`Telefone` ASC) VISIBLE,
+  INDEX `IdServicos` (`IdServicos` ASC) VISIBLE,
+  INDEX `usuario_idx` (`IdUser` ASC) VISIBLE,
+  INDEX `serv_status_idx` (`IdStatus` ASC) VISIBLE,
+  CONSTRAINT `FK_UserServicosProfissionais`
+    FOREIGN KEY (`IdUser`)
+    REFERENCES `u572677979_EVENTO_HACK`.`users` (`id`),
+  CONSTRAINT `IdServicos`
+    FOREIGN KEY (`IdServicos`)
+    REFERENCES `u572677979_EVENTO_HACK`.`servicos` (`IdServicos`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `serv_status`
+    FOREIGN KEY (`IdStatus`)
+    REFERENCES `u572677979_EVENTO_HACK`.`status` (`IdStatus`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB
+AUTO_INCREMENT = 4
+DEFAULT CHARACTER SET = utf8mb4;
+
+
+-- -----------------------------------------------------
+-- Table `u572677979_EVENTO_HACK`.`sessions`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `u572677979_EVENTO_HACK`.`sessions` (
+  `id` VARCHAR(255) NOT NULL,
+  `user_id` BIGINT(20) UNSIGNED NULL DEFAULT NULL,
+  `ip_address` VARCHAR(45) NULL DEFAULT NULL,
+  `user_agent` TEXT NULL DEFAULT NULL,
+  `payload` TEXT NOT NULL,
+  `last_activity` INT(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  INDEX `sessions_user_id_index` (`user_id` ASC) VISIBLE,
+  INDEX `sessions_last_activity_index` (`last_activity` ASC) VISIBLE)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_unicode_ci;
+
+USE `u572677979_EVENTO_HACK` ;
+
+-- -----------------------------------------------------
+-- Placeholder table for view `u572677979_EVENTO_HACK`.`ClientesAgendados`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `u572677979_EVENTO_HACK`.`ClientesAgendados` (`name` INT, `Profissional` INT, `NomeServico` INT, `ServicoDescricao` INT, `DataHora` INT, `StatusDescricao` INT);
+
+-- -----------------------------------------------------
+-- Placeholder table for view `u572677979_EVENTO_HACK`.`VisualizarCategorias`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `u572677979_EVENTO_HACK`.`VisualizarCategorias` (`NomeServico` INT, `Descricao` INT, `categoria` INT);
+
+-- -----------------------------------------------------
+-- Placeholder table for view `u572677979_EVENTO_HACK`.`automovel`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `u572677979_EVENTO_HACK`.`automovel` (`NomeServico` INT, `Descricao` INT, `categoria` INT);
+
+-- -----------------------------------------------------
+-- Placeholder table for view `u572677979_EVENTO_HACK`.`beleza`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `u572677979_EVENTO_HACK`.`beleza` (`NomeServico` INT, `Descricao` INT, `categoria` INT);
+
+-- -----------------------------------------------------
+-- Placeholder table for view `u572677979_EVENTO_HACK`.`saude`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `u572677979_EVENTO_HACK`.`saude` (`NomeServico` INT, `Descricao` INT, `categoria` INT);
+
+-- -----------------------------------------------------
+-- procedure BuscarProfissionais
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `u572677979_EVENTO_HACK`$$
+CREATE DEFINER=`u572677979_HACKTON`@`%` PROCEDURE `BuscarProfissionais`(
+    IN p_Especialidade VARCHAR(100),
+    IN p_Cidade VARCHAR(100),
+    IN p_Estado VARCHAR(100)
+)
+BEGIN
+    SELECT sp.*  
+    FROM ServicosProfissionais sp
+    JOIN Especialidades e ON sp.EspecialidadeID = e.ID 
+    WHERE e.Descricao LIKE CONCAT('%', p_Especialidade, '%') 
+      AND sp.Cidade LIKE CONCAT('%', p_Cidade, '%')  
+      AND sp.Estado LIKE CONCAT('%', p_Estado, '%'); 
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
+-- function notificar_profissional_agendamento
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `u572677979_EVENTO_HACK`$$
+CREATE DEFINER=`u572677979_HACKTON`@`%` FUNCTION `notificar_profissional_agendamento`(p_IdProfissional INT, p_Mensagem VARCHAR(255)) RETURNS varchar(255) CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci
+    DETERMINISTIC
+BEGIN
+    -- Insere a notificação na tabela de notificações
+    INSERT INTO notificacoes (IdProfissional, Mensagem)
+    VALUES (p_IdProfissional, p_Mensagem);
+    
+    -- Retorna uma mensagem confirmando a ação
+    RETURN 'Notificação enviada com sucesso!';
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
+-- View `u572677979_EVENTO_HACK`.`ClientesAgendados`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `u572677979_EVENTO_HACK`.`ClientesAgendados`;
+USE `u572677979_EVENTO_HACK`;
+CREATE  OR REPLACE ALGORITHM=UNDEFINED DEFINER=`u572677979_HACKTON`@`%` SQL SECURITY DEFINER VIEW `u572677979_EVENTO_HACK`.`ClientesAgendados` AS select `u`.`name` AS `name`,`p`.`Nome` AS `Profissional`,`s`.`NomeServico` AS `NomeServico`,`s`.`Descricao` AS `ServicoDescricao`,`a`.`DataHora` AS `DataHora`,`st`.`Descricao` AS `StatusDescricao` from ((((`u572677979_EVENTO_HACK`.`agendamentos` `a` join `u572677979_EVENTO_HACK`.`servicos` `s` on(`a`.`IdServico` = `s`.`IdServicos`)) join `u572677979_EVENTO_HACK`.`users` `u` on(`a`.`IdCliente` = `u`.`id`)) join `u572677979_EVENTO_HACK`.`profissionais` `p` on(`a`.`IdProfissional` = `p`.`IdProfissional`)) join `u572677979_EVENTO_HACK`.`status` `st` on(`a`.`IdStatus` = `st`.`IdStatus`));
+
+-- -----------------------------------------------------
+-- View `u572677979_EVENTO_HACK`.`VisualizarCategorias`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `u572677979_EVENTO_HACK`.`VisualizarCategorias`;
+USE `u572677979_EVENTO_HACK`;
+CREATE  OR REPLACE ALGORITHM=UNDEFINED DEFINER=`u572677979_HACKTON`@`%` SQL SECURITY DEFINER VIEW `u572677979_EVENTO_HACK`.`VisualizarCategorias` AS select `s`.`NomeServico` AS `NomeServico`,`s`.`Descricao` AS `Descricao`,`c`.`categoria` AS `categoria` from (`u572677979_EVENTO_HACK`.`servicos` `s` join `u572677979_EVENTO_HACK`.`categorias` `c` on(`s`.`IdCategoria` = `c`.`IdCategoria`));
+
+-- -----------------------------------------------------
+-- View `u572677979_EVENTO_HACK`.`automovel`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `u572677979_EVENTO_HACK`.`automovel`;
+USE `u572677979_EVENTO_HACK`;
+CREATE  OR REPLACE ALGORITHM=UNDEFINED DEFINER=`u572677979_HACKTON`@`%` SQL SECURITY DEFINER VIEW `u572677979_EVENTO_HACK`.`automovel` AS select `s`.`NomeServico` AS `NomeServico`,`s`.`Descricao` AS `Descricao`,`c`.`categoria` AS `categoria` from (`u572677979_EVENTO_HACK`.`servicos` `s` join `u572677979_EVENTO_HACK`.`categorias` `c` on(`s`.`IdCategoria` = `c`.`IdCategoria`)) where `c`.`IdCategoria` = 3;
+
+-- -----------------------------------------------------
+-- View `u572677979_EVENTO_HACK`.`beleza`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `u572677979_EVENTO_HACK`.`beleza`;
+USE `u572677979_EVENTO_HACK`;
+CREATE  OR REPLACE ALGORITHM=UNDEFINED DEFINER=`u572677979_HACKTON`@`%` SQL SECURITY DEFINER VIEW `u572677979_EVENTO_HACK`.`beleza` AS select `s`.`NomeServico` AS `NomeServico`,`s`.`Descricao` AS `Descricao`,`c`.`categoria` AS `categoria` from (`u572677979_EVENTO_HACK`.`servicos` `s` join `u572677979_EVENTO_HACK`.`categorias` `c` on(`s`.`IdCategoria` = `c`.`IdCategoria`)) where `c`.`IdCategoria` = 4;
+
+-- -----------------------------------------------------
+-- View `u572677979_EVENTO_HACK`.`saude`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `u572677979_EVENTO_HACK`.`saude`;
+USE `u572677979_EVENTO_HACK`;
+CREATE  OR REPLACE ALGORITHM=UNDEFINED DEFINER=`u572677979_HACKTON`@`%` SQL SECURITY DEFINER VIEW `u572677979_EVENTO_HACK`.`saude` AS select `s`.`NomeServico` AS `NomeServico`,`s`.`Descricao` AS `Descricao`,`c`.`categoria` AS `categoria` from (`u572677979_EVENTO_HACK`.`servicos` `s` join `u572677979_EVENTO_HACK`.`categorias` `c` on(`s`.`IdCategoria` = `c`.`IdCategoria`)) where `c`.`IdCategoria` = 1 or `c`.`IdCategoria` = 2;
+
+SET SQL_MODE=@OLD_SQL_MODE;
+SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
+SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
