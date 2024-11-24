@@ -35,18 +35,7 @@ CREATE DEFINER=`u572677979_HACKTON`@`%` PROCEDURE `BuscarProfissionais` (IN `p_E
 END$$
 
 --
--- Funções
---
-CREATE DEFINER=`u572677979_HACKTON`@`%` FUNCTION `notificar_profissional_agendamento` (`p_IdProfissional` INT, `p_Mensagem` VARCHAR(255)) RETURNS VARCHAR(255) CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci DETERMINISTIC BEGIN
-    -- Insere a notificação na tabela de notificações
-    INSERT INTO notificacoes (IdProfissional, Mensagem)
-    VALUES (p_IdProfissional, p_Mensagem);
-    
-    -- Retorna uma mensagem confirmando a ação
-    RETURN 'Notificação enviada com sucesso!';
-END$$
 
-DELIMITER ;
 
 -- --------------------------------------------------------
 
