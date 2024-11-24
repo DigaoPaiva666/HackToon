@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Tempo de geração: 24/11/2024 às 01:14
+-- Tempo de geração: 24/11/2024 às 05:18
 -- Versão do servidor: 10.4.32-MariaDB
 -- Versão do PHP: 8.2.12
 
@@ -21,6 +21,33 @@ SET time_zone = "+00:00";
 -- Banco de dados: `u572677979_evento_hack`
 --
 
+DELIMITER $$
+--
+-- Procedimentos
+--
+CREATE DEFINER=`u572677979_HACKTON`@`%` PROCEDURE `BuscarProfissionais` (IN `p_Especialidade` VARCHAR(100), IN `p_Cidade` VARCHAR(100), IN `p_Estado` VARCHAR(100))   BEGIN
+    SELECT sp.*  -- Selecionando todos os campos da tabela ServicosProfissionais
+    FROM ServicosProfissionais sp
+    JOIN Especialidades e ON sp.EspecialidadeID = e.ID  -- Associando os serviços com especialidades
+    WHERE e.Descricao LIKE CONCAT('%', p_Especialidade, '%')  -- Filtro para especialidade
+      AND sp.Cidade LIKE CONCAT('%', p_Cidade, '%')  -- Filtro para cidade
+      AND sp.Estado LIKE CONCAT('%', p_Estado, '%');  -- Filtro para estado
+END$$
+
+--
+-- Funções
+--
+CREATE DEFINER=`u572677979_HACKTON`@`%` FUNCTION `notificar_profissional_agendamento` (`p_IdProfissional` INT, `p_Mensagem` VARCHAR(255)) RETURNS VARCHAR(255) CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci DETERMINISTIC BEGIN
+    -- Insere a notificação na tabela de notificações
+    INSERT INTO notificacoes (IdProfissional, Mensagem)
+    VALUES (p_IdProfissional, p_Mensagem);
+    
+    -- Retorna uma mensagem confirmando a ação
+    RETURN 'Notificação enviada com sucesso!';
+END$$
+
+DELIMITER ;
+
 -- --------------------------------------------------------
 
 --
@@ -29,16 +56,38 @@ SET time_zone = "+00:00";
 
 CREATE TABLE `agendamentos` (
   `IdAgendamento` int(11) NOT NULL,
-  `IdCliente` int(11) DEFAULT NULL,
-  `IdServico` int(11) DEFAULT NULL,
+  `iduser` bigint(20) UNSIGNED NOT NULL,
+  `IdServico` int(11) NOT NULL,
   `IdProfissional` int(11) DEFAULT NULL,
   `DataHora` varchar(45) DEFAULT NULL,
   `created_at` varchar(45) DEFAULT NULL,
   `updated_at` varchar(45) DEFAULT NULL,
-  `IdStatus` int(11) DEFAULT NULL
+  `IdStatus` int(11) DEFAULT 2
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- --------------------------------------------------------
 
+--
+-- Estrutura para tabela `automovel`
+--
+
+CREATE TABLE `automovel` (
+  `NomeServico` int(11) DEFAULT NULL,
+  `Descricao` int(11) DEFAULT NULL,
+  `categoria` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estrutura para tabela `beleza`
+--
+
+CREATE TABLE `beleza` (
+  `NomeServico` int(11) DEFAULT NULL,
+  `Descricao` int(11) DEFAULT NULL,
+  `categoria` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -51,31 +100,16 @@ CREATE TABLE `categorias` (
   `categoria` varchar(45) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Despejando dados para a tabela `categorias`
---
-
-INSERT INTO `categorias` (`IdCategoria`, `categoria`) VALUES
-(1, 'Saúde'),
-(2, 'Fisioterapia'),
-(3, 'Serviços Automotivos'),
-(4, 'Beleza');
-
 -- --------------------------------------------------------
 
 --
--- Estrutura para tabela `clientes`
+-- Estrutura para tabela `especialidades`
 --
 
-CREATE TABLE `clientes` (
-  `IdCliente` int(11) NOT NULL,
-  `Telefone` bigint(11) NOT NULL,
-  `IdStatus` int(11) DEFAULT NULL,
-  `DataCriacao` timestamp NULL DEFAULT current_timestamp(),
-  `UserId` bigint(20) UNSIGNED DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
-
+CREATE TABLE `especialidades` (
+  `IdEspecialidades` int(11) NOT NULL,
+  `Descricao` varchar(100) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -85,10 +119,10 @@ CREATE TABLE `clientes` (
 
 CREATE TABLE `horariosdisponiveis` (
   `IdHorario` int(11) NOT NULL,
-  `IdProfissional` int(11) NOT NULL,
+  `iduser` bigint(20) UNSIGNED NOT NULL,
   `DataHoraInicio` datetime NOT NULL,
   `DataHoraFim` datetime NOT NULL,
-  `CodStatus` int(11) NOT NULL
+  `IdStatus` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -103,8 +137,6 @@ CREATE TABLE `migrations` (
   `batch` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-
-
 -- --------------------------------------------------------
 
 --
@@ -113,12 +145,23 @@ CREATE TABLE `migrations` (
 
 CREATE TABLE `notificacoes` (
   `IdNotificacao` int(11) NOT NULL,
-  `IdUsuario` int(11) NOT NULL,
-  `Mensagem` text NOT NULL,
-  `Lida` tinyint(1) DEFAULT 0,
-  `DataCriacao` timestamp NULL DEFAULT current_timestamp(),
-  `CodStatus` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `iduser` bigint(20) UNSIGNED NOT NULL,
+  `Mensagem` varchar(255) DEFAULT NULL,
+  `DataNotificacao` timestamp NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estrutura para tabela `perfis`
+--
+
+CREATE TABLE `perfis` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `nome` varchar(255) NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -141,20 +184,14 @@ CREATE TABLE `personal_access_tokens` (
 -- --------------------------------------------------------
 
 --
--- Estrutura para tabela `profissionais`
+-- Estrutura para tabela `saude`
 --
 
-CREATE TABLE `profissionais` (
-  `IdProfissional` int(11) NOT NULL,
-  `Telefone` bigint(11) NOT NULL,
-  `Especialidade` varchar(100) NOT NULL,
-  `Endereco` varchar(200) NOT NULL,
-  `Cidade` varchar(100) NOT NULL,
-  `Estado` char(2) NOT NULL,
-  `DataCriacao` timestamp NULL DEFAULT current_timestamp(),
-  `CodStatus` int(11) NOT NULL,
-  `UserId` bigint(20) UNSIGNED NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `saude` (
+  `NomeServico` int(11) DEFAULT NULL,
+  `Descricao` int(11) DEFAULT NULL,
+  `categoria` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -171,32 +208,6 @@ CREATE TABLE `servicos` (
   `Imagem` varchar(500) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Despejando dados para a tabela `servicos`
---
-
-INSERT INTO `servicos` (`IdServicos`, `NomeServico`, `Descricao`, `DataCriacao`, `IdCategoria`, `Imagem`) VALUES
-(1, 'Consulta Médica', 'Consulta com médico especializado para diagnóstico e orientação de tratamentos.', '2024-11-23 03:31:27', 1, 'https://media.unimedcampinas.com.br/22c468b0-fd98-4da4-ac65-19f20c680fe0'),
-(2, 'Exame de Sangue', 'Coleta de sangue para exames laboratoriais, com resultados de diversos parâmetros de saúde.', '2024-11-23 03:31:27', 1, 'https://labvw.com.br/wp-content/uploads/2023/04/image-4.png'),
-(3, 'Ultrassonografia', 'Exame de imagem que utiliza ondas sonoras para visualizar órgãos e estruturas internas.', '2024-11-23 03:31:27', 1, 'https://www.hsjose.com.br/img/noticias/noticia_464.jpg'),
-(4, 'Cirurgia Plástica', 'Procedimento cirúrgico com fins estéticos ou reconstrutivos, visando a melhoria da aparência ou reparação de lesões.', '2024-11-23 03:31:27', 1, 'https://blanchospital.com.br/blog/wp-content/uploads/2020/02/iStock-842219874-1080x675.jpg'),
-(5, 'Consulta Psiquiátrica', 'Consulta com psiquiatra para diagnóstico, acompanhamento e tratamento de transtornos mentais.', '2024-11-23 03:31:27', 1, 'https://telemedicinamorsch.com.br/wp-content/uploads/2021/07/atendimento-psiquiatrico-telemedicina-morsch.jpg'),
-(6, 'Fisioterapia Traumática', 'Tratamento fisioterápico especializado para recuperação de lesões traumáticas e fraturas.', '2024-11-23 03:34:24', 2, 'https://www.pompeiaortopedia.com.br/wp-content/uploads/2023/03/tecnicas-de-fisioterapia-traumato-ortopedica-quais-sao-as-mais-eficazes-1024x536.jpg'),
-(7, 'Fisioterapia Respiratória', 'Tratamento fisioterapêutico voltado para doenças respiratórias, melhorando a capacidade pulmonar.', '2024-11-23 03:34:24', 2, 'https://revistaunick.com.br/wp-content/uploads/2020/09/FISIOTERAPIA-RESPIRATORIA.jpg'),
-(8, 'Reabilitação Pós-Cirúrgica', 'Fisioterapia orientada para reabilitação de movimentos e funções após procedimentos cirúrgicos.', '2024-11-23 03:34:24', 2, 'https://www.colorado.com.br/nosdacolorado/wp-content/uploads/2020/07/fisio.jpg'),
-(9, 'Fisioterapia Ortopédica', 'Tratamento fisioterapêutico para lesões e disfunções musculoesqueléticas, como articulações e músculos.', '2024-11-23 03:34:24', 2, 'https://www.clinicasphera.com.br/wp-content/uploads/2018/03/fisioortopposop.jpg'),
-(10, 'Fisioterapia Neurológica', 'Fisioterapia focada na reabilitação de pacientes com doenças neurológicas, como AVC e Parkinson.', '2024-11-23 03:34:24', 2, 'https://physicalmed.es/wp-content/uploads/2022/07/Sin-titulo-9.jpg'),
-(11, 'Troca de Óleo', 'Serviço de troca de óleo do motor para garantir o bom funcionamento do veículo e prolongar a vida útil do motor.', '2024-11-23 03:35:15', 3, 'https://www.minutoseguros.com.br/blog/wp-content/uploads/2016/07/troca-de-oleo-2.jpg'),
-(12, 'Revisão de Freios', 'Verificação e substituição das pastilhas de freio, discos e fluidos para garantir a segurança do veículo.', '2024-11-23 03:35:15', 3, 'https://cpfabbri.com.br/wp-content/uploads/2023/05/image-2023-05-09T141404.857.png'),
-(13, 'Alinhamento e Balanceamento', 'Serviço de alinhamento e balanceamento das rodas para garantir a estabilidade do veículo e o desgaste uniforme dos pneus.', '2024-11-23 03:35:15', 3, 'https://www.webmotors.com.br/wp-content/uploads/2019/11/21222332/Alinhamento-e-balanceamento-3.jpg'),
-(14, 'Troca de Pneus', 'Substituição dos pneus danificados ou desgastados, garantindo a segurança e desempenho do veículo.', '2024-11-23 03:35:15', 3, 'https://s.zst.com.br/cms-assets/2021/10/troca_de_pneu.jpg'),
-(15, 'Reparo de Suspensão', 'Verificação e reparo do sistema de suspensão do veículo, garantindo o conforto e a estabilidade durante a condução.', '2024-11-23 03:35:15', 3, 'https://1.bp.blogspot.com/-Ac8LCBnf5s8/XVWRjlkYcvI/AAAAAAAADAk/in_H3r7kZ54Vj3oh4fGI3mIrO1_S4of-gCLcBGAs/s1600/amortecedor-mola.jpg'),
-(16, 'Corte de Cabelo', 'Corte de cabelo feminino, masculino ou infantil, de acordo com o estilo e preferências do cliente.', '2024-11-23 03:36:20', 4, 'https://www.imakebox.com.br/wp-content/uploads/2021/06/cortar-cabelo-salao.jpg'),
-(17, 'Penteado', 'Criação de penteados para ocasiões especiais como casamentos, festas e eventos.', '2024-11-23 03:36:20', 4, 'https://www.ritzcabeloestetica.com.br/wp-content/uploads/2015/12/IMG_2222-946x1024.jpg'),
-(18, 'Hidratação Capilar', 'Tratamento capilar para hidratar e restaurar a saúde dos fios danificados por químicas ou pelo tempo.', '2024-11-23 03:36:20', 4, 'https://cdn.vidaativa.pt/uploads/2019/11/mascara-de-cabelo-1.jpg'),
-(19, 'Tintura de Cabelo', 'Coloração de cabelo, com opções de tinturas permanentes ou temporárias, para cobertura de fios brancos ou mudanças de cor.', '2024-11-23 03:36:20', 4, 'https://st.depositphotos.com/1735158/4044/i/950/depositphotos_40441637-stock-photo-hairdresser-applying-color-female-customer.jpg'),
-(20, 'Escova Progressiva', 'Procedimento que alisa os fios, diminuindo o volume e proporcionando um efeito liso duradouro.', '2024-11-23 03:36:20', 4, 'https://areademulher.r7.com/wp-content/uploads/2020/07/escova-progressiva-como-fazer-cuidados-tipos-e-qual-a-melhor-escolha-12.jpg');
-
 -- --------------------------------------------------------
 
 --
@@ -205,11 +216,18 @@ INSERT INTO `servicos` (`IdServicos`, `NomeServico`, `Descricao`, `DataCriacao`,
 
 CREATE TABLE `servicosprofissionais` (
   `IdServicosProfissionais` int(11) NOT NULL,
-  `IdProfissional` bigint(20) NOT NULL,
-  `IdServicos` int(11) DEFAULT NULL,
+  `IdUser` bigint(20) UNSIGNED NOT NULL,
+  `IdServicos` int(11) NOT NULL,
+  `Telefone` bigint(11) NOT NULL,
+  `Cep` bigint(8) UNSIGNED ZEROFILL NOT NULL,
+  `Endereco` varchar(300) NOT NULL,
+  `Numero` int(5) NOT NULL,
+  `Complemento` varchar(45) DEFAULT NULL,
+  `Cidade` varchar(50) NOT NULL,
+  `Estado` char(2) NOT NULL,
   `Preco` decimal(5,2) NOT NULL,
-  `DataCriacao` timestamp NULL DEFAULT current_timestamp(),
-  `CodStatus` int(11) NOT NULL
+  `IdStatus` int(11) NOT NULL,
+  `DataCriacao` timestamp NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -227,7 +245,6 @@ CREATE TABLE `sessions` (
   `last_activity` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-
 -- --------------------------------------------------------
 
 --
@@ -238,27 +255,6 @@ CREATE TABLE `status` (
   `IdStatus` int(11) NOT NULL,
   `Descricao` varchar(100) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Despejando dados para a tabela `status`
---
-
-INSERT INTO `status` (`IdStatus`, `Descricao`) VALUES
-(1, 'Agendado'),
-(2, 'Pendente'),
-(3, 'Cancelado'),
-(4, 'Concluído'),
-(5, 'Não Compareceu'),
-(6, 'Reagendado'),
-(7, 'Em Andamento'),
-(8, 'Atrasado'),
-(9, 'Expirado'),
-(10, 'Interrompido'),
-(11, 'Recusado'),
-(12, 'Confirmado Manualmente'),
-(13, '	Aguardando Pagamento'),
-(14, 'Cancelamento Solicitado'),
-(15, '	Verificação Necessária:');
 
 -- --------------------------------------------------------
 
@@ -274,16 +270,21 @@ CREATE TABLE `users` (
   `password` varchar(255) NOT NULL,
   `remember_token` varchar(100) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL
+  `updated_at` timestamp NULL DEFAULT NULL,
+  `id_perfil` bigint(20) UNSIGNED DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- --------------------------------------------------------
+
 --
--- Despejando dados para a tabela `users`
+-- Estrutura para tabela `visualizarcategorias`
 --
 
-INSERT INTO `users` (`id`, `name`, `email`, `email_verified_at`, `password`, `remember_token`, `created_at`, `updated_at`) VALUES
-(1, 'Anderson Lana', 'anderson-lana@hotmail.com', NULL, '$2y$10$3DGrHCX0yxEsN32ZATda6eSrcv12WN0yUN1OxhFeIKx2L8Pd2T2x6', NULL, '2024-11-23 17:14:38', '2024-11-23 17:14:38'),
-(2, 'Arthur Demétrio Lazaro', 'arthurdemetriolazaro370@gmail.com', NULL, '$2y$10$zeMqO2pOuVJBl2Fecfl3ZuZexHJXMIPPF5w.G2meUxegyg0h8UIBe', NULL, '2024-11-23 18:01:56', '2024-11-23 18:01:56');
+CREATE TABLE `visualizarcategorias` (
+  `NomeServico` int(11) DEFAULT NULL,
+  `Descricao` int(11) DEFAULT NULL,
+  `categoria` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Índices para tabelas despejadas
@@ -293,7 +294,10 @@ INSERT INTO `users` (`id`, `name`, `email`, `email_verified_at`, `password`, `re
 -- Índices de tabela `agendamentos`
 --
 ALTER TABLE `agendamentos`
-  ADD PRIMARY KEY (`IdAgendamento`);
+  ADD PRIMARY KEY (`IdAgendamento`),
+  ADD KEY `servico_idx` (`IdServico`),
+  ADD KEY `usuario_servico_idx` (`iduser`),
+  ADD KEY `status_idx` (`IdStatus`);
 
 --
 -- Índices de tabela `categorias`
@@ -302,19 +306,18 @@ ALTER TABLE `categorias`
   ADD PRIMARY KEY (`IdCategoria`);
 
 --
--- Índices de tabela `clientes`
+-- Índices de tabela `especialidades`
 --
-ALTER TABLE `clientes`
-  ADD PRIMARY KEY (`IdCliente`),
-  ADD UNIQUE KEY `Telefone` (`Telefone`),
-  ADD KEY `FK_UserClientes` (`UserId`);
+ALTER TABLE `especialidades`
+  ADD PRIMARY KEY (`IdEspecialidades`);
 
 --
 -- Índices de tabela `horariosdisponiveis`
 --
 ALTER TABLE `horariosdisponiveis`
   ADD PRIMARY KEY (`IdHorario`),
-  ADD KEY `IdProfissional` (`IdProfissional`);
+  ADD KEY `iduser_idx` (`iduser`),
+  ADD KEY `fk_status_idx` (`IdStatus`);
 
 --
 -- Índices de tabela `migrations`
@@ -326,7 +329,14 @@ ALTER TABLE `migrations`
 -- Índices de tabela `notificacoes`
 --
 ALTER TABLE `notificacoes`
-  ADD PRIMARY KEY (`IdNotificacao`);
+  ADD PRIMARY KEY (`IdNotificacao`),
+  ADD KEY `notificacao_id_idx` (`iduser`);
+
+--
+-- Índices de tabela `perfis`
+--
+ALTER TABLE `perfis`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Índices de tabela `personal_access_tokens`
@@ -335,14 +345,6 @@ ALTER TABLE `personal_access_tokens`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `personal_access_tokens_token_unique` (`token`),
   ADD KEY `personal_access_tokens_tokenable_type_tokenable_id_index` (`tokenable_type`,`tokenable_id`);
-
---
--- Índices de tabela `profissionais`
---
-ALTER TABLE `profissionais`
-  ADD PRIMARY KEY (`IdProfissional`),
-  ADD UNIQUE KEY `Telefone` (`Telefone`),
-  ADD KEY `FK_UserProfissionais` (`UserId`);
 
 --
 -- Índices de tabela `servicos`
@@ -355,8 +357,10 @@ ALTER TABLE `servicos`
 --
 ALTER TABLE `servicosprofissionais`
   ADD PRIMARY KEY (`IdServicosProfissionais`),
-  ADD KEY `IdProfissional` (`IdProfissional`),
-  ADD KEY `IdServicos` (`IdServicos`);
+  ADD UNIQUE KEY `Telefone_UNIQUE` (`Telefone`),
+  ADD KEY `IdServicos` (`IdServicos`),
+  ADD KEY `usuario_idx` (`IdUser`),
+  ADD KEY `serv_status_idx` (`IdStatus`);
 
 --
 -- Índices de tabela `sessions`
@@ -377,7 +381,8 @@ ALTER TABLE `status`
 --
 ALTER TABLE `users`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `users_email_unique` (`email`);
+  ADD UNIQUE KEY `users_email_unique` (`email`),
+  ADD KEY `users_id_perfil_foreign` (`id_perfil`);
 
 --
 -- AUTO_INCREMENT para tabelas despejadas
@@ -396,10 +401,10 @@ ALTER TABLE `categorias`
   MODIFY `IdCategoria` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
--- AUTO_INCREMENT de tabela `clientes`
+-- AUTO_INCREMENT de tabela `especialidades`
 --
-ALTER TABLE `clientes`
-  MODIFY `IdCliente` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+ALTER TABLE `especialidades`
+  MODIFY `IdEspecialidades` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=288;
 
 --
 -- AUTO_INCREMENT de tabela `horariosdisponiveis`
@@ -411,7 +416,7 @@ ALTER TABLE `horariosdisponiveis`
 -- AUTO_INCREMENT de tabela `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT de tabela `notificacoes`
@@ -420,16 +425,16 @@ ALTER TABLE `notificacoes`
   MODIFY `IdNotificacao` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT de tabela `perfis`
+--
+ALTER TABLE `perfis`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT de tabela `personal_access_tokens`
 --
 ALTER TABLE `personal_access_tokens`
   MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT de tabela `profissionais`
---
-ALTER TABLE `profissionais`
-  MODIFY `IdProfissional` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=415;
 
 --
 -- AUTO_INCREMENT de tabela `servicos`
@@ -441,7 +446,7 @@ ALTER TABLE `servicos`
 -- AUTO_INCREMENT de tabela `servicosprofissionais`
 --
 ALTER TABLE `servicosprofissionais`
-  MODIFY `IdServicosProfissionais` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `IdServicosProfissionais` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT de tabela `status`
@@ -453,37 +458,46 @@ ALTER TABLE `status`
 -- AUTO_INCREMENT de tabela `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- Restrições para tabelas despejadas
 --
 
 --
--- Restrições para tabelas `clientes`
+-- Restrições para tabelas `agendamentos`
 --
-ALTER TABLE `clientes`
-  ADD CONSTRAINT `FK_UserClientes` FOREIGN KEY (`UserId`) REFERENCES `users` (`id`);
+ALTER TABLE `agendamentos`
+  ADD CONSTRAINT `servico` FOREIGN KEY (`IdServico`) REFERENCES `servicos` (`IdServicos`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  ADD CONSTRAINT `status` FOREIGN KEY (`IdStatus`) REFERENCES `status` (`IdStatus`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  ADD CONSTRAINT `usuario_servico` FOREIGN KEY (`iduser`) REFERENCES `users` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 --
 -- Restrições para tabelas `horariosdisponiveis`
 --
 ALTER TABLE `horariosdisponiveis`
-  ADD CONSTRAINT `horariosdisponiveis_ibfk_1` FOREIGN KEY (`IdProfissional`) REFERENCES `profissionais` (`IdProfissional`);
+  ADD CONSTRAINT `fk_status` FOREIGN KEY (`IdStatus`) REFERENCES `status` (`IdStatus`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  ADD CONSTRAINT `iduser_horario` FOREIGN KEY (`iduser`) REFERENCES `users` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 --
--- Restrições para tabelas `profissionais`
+-- Restrições para tabelas `notificacoes`
 --
-ALTER TABLE `profissionais`
-  ADD CONSTRAINT `FK_UserProfissionais` FOREIGN KEY (`UserId`) REFERENCES `users` (`id`);
+ALTER TABLE `notificacoes`
+  ADD CONSTRAINT `notificacao_id` FOREIGN KEY (`iduser`) REFERENCES `users` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 --
 -- Restrições para tabelas `servicosprofissionais`
 --
 ALTER TABLE `servicosprofissionais`
-  ADD CONSTRAINT `IdServicos` FOREIGN KEY (`IdServicos`) REFERENCES `servicos` (`IdServicos`) ON DELETE NO ACTION ON UPDATE NO ACTION;
+  ADD CONSTRAINT `FK_UserServicosProfissionais` FOREIGN KEY (`IdUser`) REFERENCES `users` (`id`),
+  ADD CONSTRAINT `IdServicos` FOREIGN KEY (`IdServicos`) REFERENCES `servicos` (`IdServicos`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  ADD CONSTRAINT `serv_status` FOREIGN KEY (`IdStatus`) REFERENCES `status` (`IdStatus`) ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+--
+-- Restrições para tabelas `users`
+--
+ALTER TABLE `users`
+  ADD CONSTRAINT `users_id_perfil_foreign` FOREIGN KEY (`id_perfil`) REFERENCES `perfis` (`id`) ON DELETE SET NULL;
 COMMIT;
 
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+
